@@ -25,27 +25,43 @@ app.use('/api/items', itemsRouter);
 app.use('/api/stats', statsRouter);
 
 /**
- * @route    GET /api/endpoint
- * @desc     Gets contract balance
- * @author   [Pavelescu Maria]
- * @access   [public/private/auth-required]
- * @param    {Request}  req  - Express request object. 
-{
-    "smartContractAddress": "0x20b88bd52f362e30a63FF6DFAD81b7b34DC069f0",
-    "fromAddress": "0x365f14a97a16b380dd64b677ea0a92bafa6f606e"
-    }
- * @param    {Response} res  - Express response object.
- * @returns  {JSON}             
- *          success: true,
-            message: `Transaction was sucessful`,
-            txHash: receipt.transactionHash
- * @throws   400 on invalid input, 500 on contract failure
- *
+ * @route   GET /api/endpoint
+ * @desc    Retrieves the contract balance
+ * @author  Pavelescu Maria
+ * @access  public/private/auth-required
+ * 
+ * @param   {Request}  req  - Express request object. Expects JSON body:
+ *          {
+ *            smartContractAddress: "0x20b88bd52f362e30a63FF6DFAD81b7b34DC069f0",
+ *            fromAddress: "0x365f14a97a16b380dd64b677ea0a92bafa6f606e"
+ *          }
+ * @param   {Response} res  - Express response object
+ * @returns {JSON} Response JSON object:
+ *          {
+ *            success: true,
+ *            message: "Transaction was successful",
+ *            txHash: "<transaction hash>"
+ *          }
+ * 
+ * @throws  {400} Bad Request - on invalid input
+ * @throws  {500} Internal Server Error - on contract call failure
+ * 
  * @example
+ * // Request body:
+ * {
+ *   "smartContractAddress": "0x20b88bd52f362e30a63FF6DFAD81b7b34DC069f0",
+ *   "fromAddress": "0x365f14a97a16b380dd64b677ea0a92bafa6f606e"
+ * }
+ * 
+ * // Successful response:
+ * {
+ *   "success": true,
+ *   "message": "Transaction was successful",
+ *   "txHash": "0xabc123..."
+ * }
+ */
 
-*/
-
-app.use('/api/ethereum/contract-balance', ethereumRouter);
+app.use('/api/ethereum/total-supply', ethereumRouter);
 
 app.use(errorHandlerAlternative.errorHandlerAlternative());
 // Serve static files in production

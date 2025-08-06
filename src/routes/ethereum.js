@@ -4,7 +4,7 @@ const Web3 = require('web3').default;
 const validator = require('web3-validator');
 const contractInteraction = require('../services/ethereumContractInteractions');
 
-// GET /api/ethereum/contract-balance
+// GET /api/ethereum/total-supply
 router.get('/', async (req, res, next) => {
     try {
         const web3 = new Web3(process.env.RPC_URL_SEPOLIA);
@@ -33,7 +33,7 @@ router.get('/', async (req, res, next) => {
 
         // Send signed transaction
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-        // NOTE: Tipically for view only transactions, we would only call the function by use of web3 .call() - not specifically create a transaction
+        // NOTE: For view only transactions, we would only call the function by use of web3 .call() - not specifically create a transaction
         // Hence, here we do not have a result, but only the tx receipt
         // I did this for demonstrating contract interaction
 
