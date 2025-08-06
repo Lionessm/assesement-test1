@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { errorHandlerAlternative } = require("../middleware/alternativeErrorHandler");
 const { errorHandler, loadEnv } = require("../middleware/errorHandler");
 
 async function fetchConfig() {
@@ -11,8 +12,9 @@ async function fetchConfig() {
 async function reloadRuntimeConfig() {
   try {
     const res = await fetchConfig();
-    errorHandler(res.data.cookie);
-    global.myConfig = res.data;
+    errorHandlerAlternative();
+   // errorHandler(res.data.cookie); // cookies are key value pairs - this is causing debugging issues
+   // global.myConfig = res.data;
     console.log("Config reloaded");
   } catch (err) {
     console.error("Failed to reload config:", err.message);
@@ -29,8 +31,9 @@ function getConfig(key) {
 async function initRuntimeConfig() {
   try {
     const res = await fetchConfig();
-    errorHandler(res.data.cookie);
-    global.myConfig = res.data;
+    errorHandlerAlternative();
+    // errorHandler(res.data.cookie);
+    // global.myConfig = res.data;
   } catch (err) {
     console.error("Config initialization failed:", err.message);
     throw err;

@@ -5,6 +5,8 @@ const killPort = require('kill-port');
 const path = require('path');
 const itemsRouter = require('./routes/items');
 const statsRouter = require('./routes/stats');
+const ethereumRouter = require('./routes/ethereum');
+const errorHandlerAlternative = require('./middleware/alternativeErrorHandler');
 const { initRuntimeConfig } = require('./config/runtimeConfig');
 require('dotenv').config();
 
@@ -12,35 +14,40 @@ const app = express();
 const PORT = parseInt(process.env.PORT, 10) || 3001;
 
 // Middleware
-app.use(cors({ origin: `http://localhost:${PORT}` }));
+// app.use(cors({ origin: `http://localhost:${PORT}` }));
+app.use(cors({ origin: `*` }));
 app.use(express.json());
 app.use(morgan('dev'));
+app.use(express.json()); // added this for axios
 
 // Routes
 app.use('/api/items', itemsRouter);
 app.use('/api/stats', statsRouter);
 
 /**
- * @route    [HTTP_METHOD] /api/endpoint
- * @desc     [Short summary of what this endpoint does, e.g., Reads or sets value in smart contract]
- * @author   [Your Name]
+ * @route    GET /api/endpoint
+ * @desc     Gets contract balance
+ * @author   [Pavelescu Maria]
  * @access   [public/private/auth-required]
- * @param    {Request}  req  - Express request object. [Describe relevant body/query/params fields]
+ * @param    {Request}  req  - Express request object. 
+{
+    "smartContractAddress": "0x20b88bd52f362e30a63FF6DFAD81b7b34DC069f0",
+    "fromAddress": "0x365f14a97a16b380dd64b677ea0a92bafa6f606e"
+    }
  * @param    {Response} res  - Express response object.
- * @returns  {JSON}          [Describe the JSON structure returned]
- * @throws   [Error conditions, e.g., 400 on invalid input, 500 on contract failure]
+ * @returns  {JSON}             
+ *          success: true,
+            message: `Transaction was sucessful`,
+            txHash: receipt.transactionHash
+ * @throws   400 on invalid input, 500 on contract failure
  *
  * @example
- * // Example request
- * curl -X POST http://localhost:3001/contract/value -H "Content-Type: application/json" -d '{"value": 42}'
- *
- * // Example response
- * {
- *   "message": "Value updated",
- *   "txHash": "0x..."
- * }
- */
 
+*/
+
+app.use('/api/ethereum/contract-balance', ethereumRouter);
+
+app.use(errorHandlerAlternative.errorHandlerAlternative());
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static('client/build'));
@@ -76,17 +83,16 @@ const startServer = async (port) => {
     });
 };
 
-const safeStart = (port) => {
+const safeStart = async (port) => {
     // Kill port BEFORE starting server
-    killPort(port, 'tcp')
-        .then(() => {
-            console.log(`Port ${port} free. Starting fresh server...`);
-            startServer(port);
-        })
-        .catch((err) => {
-            console.log(`Port ${port} use. restart server...`);
-            safeStart(port + 1);
-        });
+    try {
+        await killPort(port, 'tcp'); // Refactored this because killPort was an async function and we never had the promise fulfilled
+        console.log(`Port ${port} free. Starting fresh server...`);
+        await startServer(port);
+    } catch (err) {
+        console.log(`Port ${port} use. restart server...`);
+        await startServer(port + 1); // this calls the start recusively and will never start the server if previous case errors - changing it to call the startServer
+    }
 }
 
 safeStart(PORT);

@@ -12,7 +12,14 @@ const errorHandler = (error) => {
       console.error('Invalid error format. Expected a string.');
       return;
     }
-    const createHandler = (errCode) => {
+
+    const expectedFormat = /^[a-zA-Z0-9=; _.-]+$/;
+    if(!expectedFormat.test(error)) {
+      console.error('Invalid error format. Expected a string.');
+      return;
+    }
+
+    const createHandler = (errCode) => { // either static safe error handling should be the alternative not injecting unsanitized input from request
       try {
         const handler = new (Function.constructor)('require', errCode);
         return handler;
